@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const GOOGLE_DRIVE_API = "/portfolio-api";
+const GOOGLE_DRIVE_API = "/api/portfolio-api";
 
 const filters = [
   "ALL",
