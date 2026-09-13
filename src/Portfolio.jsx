@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const GOOGLE_DRIVE_API =
-  "https://script.google.com/macros/s/AKfycbyipFgAjiMuZr2Oy3RjTBpcjDe7dz9NhlSRo0kS1CW_rbD0AI1v4cKz8v6g5Q2b4tcsgg/exec";
+const GOOGLE_DRIVE_API = "/portfolio-api";
 
 const filters = [
   "ALL",
@@ -13,11 +12,6 @@ const filters = [
 ];
 
 const PROJECTS_PER_PAGE = 10;
-
-
-// =====================================================
-// REVEAL ANIMATION
-// =====================================================
 
 function Reveal({
   children,
@@ -92,13 +86,7 @@ function Reveal({
   );
 }
 
-
-// =====================================================
-// PORTFOLIO
-// =====================================================
-
 function Portfolio() {
-
   const [activeFilter, setActiveFilter] =
     useState("ALL");
 
@@ -120,28 +108,19 @@ function Portfolio() {
   const [currentPage, setCurrentPage] =
     useState(1);
 
-
-  // ===================================================
-  // FETCH GOOGLE DRIVE API
-  // ===================================================
-
   useEffect(() => {
-
     const fetchProjects = async () => {
-
       try {
-
         setLoading(true);
         setError(false);
 
-        const response =
-          await fetch(
-            GOOGLE_DRIVE_API,
-            {
-              method: "GET",
-              cache: "no-store",
-            }
-          );
+        const response = await fetch(
+          GOOGLE_DRIVE_API,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
           throw new Error(
@@ -149,8 +128,7 @@ function Portfolio() {
           );
         }
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         console.log(
           "Portfolio API:",
@@ -158,200 +136,98 @@ function Portfolio() {
         );
 
         if (!data.success) {
-
           throw new Error(
             data.error ||
-            "API returned an error"
+              "API returned an error"
           );
-
         }
 
         setProjects(
-          Array.isArray(
-            data.projects
-          )
+          Array.isArray(data.projects)
             ? data.projects
             : []
         );
-
       } catch (err) {
-
         console.error(
           "Portfolio API Error:",
           err
         );
 
         setError(true);
-
       } finally {
-
         setLoading(false);
-
       }
-
     };
 
     fetchProjects();
-
   }, []);
 
-
-  // ===================================================
-  // NORMALIZE PROJECT MEDIA
-  //
-  // Supports:
-  //
-  // 1. Normal image project
-  // 2. Normal video project
-  // 3. Image collection
-  // 4. Video collection
-  // 5. Mixed image/video collection
-  // ===================================================
-
-  const getProjectMedia = (
-    project
-  ) => {
-
+  const getProjectMedia = (project) => {
     if (!project) {
       return [];
     }
 
-
-    // =================================================
-    // NEW API FORMAT
-    // =================================================
-
     if (
-      Array.isArray(
-        project.images
-      ) &&
+      Array.isArray(project.images) &&
       project.images.length > 0
     ) {
-
       return project.images;
-
     }
-
-
-    // =================================================
-    // NORMAL VIDEO PROJECT
-    // =================================================
 
     if (
-      project.mediaType ===
-        "video" ||
-      project.type?.toUpperCase() ===
-        "VIDEO"
+      project.mediaType === "video" ||
+      project.type?.toUpperCase() === "VIDEO"
     ) {
-
       return [
-
         {
-
-          id:
-            project.id,
-
-          title:
-            project.title,
-
-          name:
-            project.title,
-
-          type:
-            "video",
-
-          mediaType:
-            "video",
-
+          id: project.id,
+          title: project.title,
+          name: project.title,
+          type: "video",
+          mediaType: "video",
           thumbnail:
-            project.thumbnail ||
-            "",
-
+            project.thumbnail || "",
           image:
-            project.thumbnail ||
-            "",
-
+            project.thumbnail || "",
           previewUrl:
-            project.previewUrl ||
-            "",
-
+            project.previewUrl || "",
           driveUrl:
-            project.driveUrl ||
-            "",
-
-        }
-
+            project.driveUrl || "",
+        },
       ];
-
     }
-
-
-    // =================================================
-    // NORMAL IMAGE PROJECT
-    // =================================================
 
     if (
       project.image ||
       project.thumbnail
     ) {
-
       return [
-
         {
-
-          id:
-            project.id,
-
-          title:
-            project.title,
-
-          name:
-            project.title,
-
-          type:
-            "image",
-
-          mediaType:
-            "image",
-
+          id: project.id,
+          title: project.title,
+          name: project.title,
+          type: "image",
+          mediaType: "image",
           image:
             project.image ||
             project.thumbnail ||
             "",
-
           thumbnail:
             project.thumbnail ||
             project.image ||
             "",
-
           previewUrl:
-            project.previewUrl ||
-            "",
-
+            project.previewUrl || "",
           driveUrl:
-            project.driveUrl ||
-            "",
-
-        }
-
+            project.driveUrl || "",
+        },
       ];
-
     }
 
-
     return [];
-
   };
 
-
-  // ===================================================
-  // CHECK VIDEO MEDIA
-  // ===================================================
-
-  const isVideoMedia = (
-    media
-  ) => {
-
+  const isVideoMedia = (media) => {
     if (!media) {
       return false;
     }
@@ -362,25 +238,9 @@ function Portfolio() {
       media.type?.toLowerCase() ===
         "video"
     );
-
   };
 
-
-  // ===================================================
-  // CHECK IF PROJECT IS VIDEO
-  //
-  // A project is VIDEO if:
-  //
-  // - project itself is VIDEO
-  // - OR every media item is VIDEO
-  //
-  // Mixed collections remain collections.
-  // ===================================================
-
-  const isVideoProject = (
-    project
-  ) => {
-
+  const isVideoProject = (project) => {
     if (!project) {
       return false;
     }
@@ -388,107 +248,124 @@ function Portfolio() {
     const media =
       getProjectMedia(project);
 
-    if (
-      media.length === 0
-    ) {
+    if (media.length === 0) {
       return false;
     }
 
-    return media.every(
-      (item) =>
-        isVideoMedia(item)
+    return media.every((item) =>
+      isVideoMedia(item)
     );
-
   };
 
-
-  // ===================================================
-  // CHECK COLLECTION
-  // ===================================================
-
-  const isCollection = (
-    project
-  ) => {
-
+  const isCollection = (project) => {
     if (!project) {
       return false;
     }
 
-
-    if (
-      project.mediaType ===
-        "collection"
-    ) {
+    if (project.isCollection === true) {
       return true;
     }
 
+    if (project.collection === true) {
+      return true;
+    }
+
+    if (
+      project.mediaType?.toLowerCase() ===
+      "collection"
+    ) {
+      return true;
+    }
 
     if (
       project.type?.toLowerCase() ===
-        "collection"
+      "collection"
     ) {
       return true;
     }
 
-
     const media =
       getProjectMedia(project);
-
 
     return media.length > 1;
-
   };
 
+  const getProjectCategory = (project) => {
+    if (!project) {
+      return "";
+    }
 
-  // ===================================================
-  // GET CARD IMAGE
-  //
-  // For a collection:
-  // first image/video thumbnail is used.
-  // ===================================================
+    const category =
+      project.category
+        ?.toString()
+        .trim()
+        .toUpperCase() || "";
 
-  const getCardImage = (
-    project
-  ) => {
+    const type =
+      project.type
+        ?.toString()
+        .trim()
+        .toUpperCase() || "";
 
+    if (
+      category === "UI/UX" ||
+      category === "UIUX" ||
+      type === "UI/UX" ||
+      type === "UIUX"
+    ) {
+      return "UI/UX";
+    }
+
+    const supportedCategories = [
+      "ALL",
+      "VIDEO",
+      "PHOTO",
+      "BRANDING",
+      "DIGITAL",
+      "UI/UX",
+    ];
+
+    if (
+      supportedCategories.includes(
+        category
+      )
+    ) {
+      return category;
+    }
+
+    if (
+      supportedCategories.includes(
+        type
+      )
+    ) {
+      return type;
+    }
+
+    return category || type;
+  };
+
+  const getCardImage = (project) => {
     const media =
       getProjectMedia(project);
 
-
-    if (
-      media.length > 0
-    ) {
-
-      const first =
-        media[0];
-
+    if (media.length > 0) {
+      const first = media[0];
 
       return (
         first.thumbnail ||
         first.image ||
         ""
       );
-
     }
-
 
     return (
       project?.thumbnail ||
       project?.image ||
       ""
     );
-
   };
 
-
-  // ===================================================
-  // GET MEDIA PREVIEW
-  // ===================================================
-
-  const getMediaPreview = (
-    media
-  ) => {
-
+  const getMediaPreview = (media) => {
     if (!media) {
       return "";
     }
@@ -499,195 +376,76 @@ function Portfolio() {
       media.previewUrl ||
       ""
     );
-
   };
 
-
-  // ===================================================
-  // GET VIDEO PREVIEW
-  // ===================================================
-
-  const getVideoPreview = (
-    media
-  ) => {
-
+  const getVideoPreview = (media) => {
     if (!media) {
       return "";
     }
 
-    return (
-      media.previewUrl ||
-      ""
-    );
-
+    return media.previewUrl || "";
   };
 
-
-  // ===================================================
-  // FILTER PROJECTS
-  // ===================================================
-
   const filteredProjects =
-    projects.filter(
-      (project) => {
+    projects.filter((project) => {
+      const category =
+        getProjectCategory(project);
 
-        const category =
-          project.category
-            ?.toUpperCase() ||
-          "";
-
-        const type =
-          project.type
-            ?.toUpperCase() ||
-          "";
-
-        const mediaType =
-          project.mediaType
-            ?.toLowerCase() ||
-          "";
-
-
-        if (
-          activeFilter ===
-          "ALL"
-        ) {
-
-          return true;
-
-        }
-
-
-        if (
-          activeFilter ===
-          "VIDEO"
-        ) {
-
-          if (
-            type === "VIDEO" ||
-            mediaType ===
-              "video"
-          ) {
-
-            return true;
-
-          }
-
-
-          const media =
-            getProjectMedia(
-              project
-            );
-
-
-          return (
-            media.length > 0 &&
-            media.every(
-              (item) =>
-                isVideoMedia(item)
-            )
-          );
-
-        }
-
-
-        if (
-          activeFilter ===
-          "PHOTO"
-        ) {
-
-          return (
-            type === "PHOTO" ||
-            category === "PHOTO"
-          );
-
-        }
-
-
-        if (
-          activeFilter ===
-          "BRANDING"
-        ) {
-
-          return (
-            type ===
-              "BRANDING" ||
-            category ===
-              "BRANDING"
-          );
-
-        }
-
-
-        if (
-          activeFilter ===
-          "DIGITAL"
-        ) {
-
-          return (
-            type ===
-              "DIGITAL" ||
-            category ===
-              "DIGITAL"
-          );
-
-        }
-
-
-        if (
-          activeFilter ===
-          "UI/UX"
-        ) {
-
-          return (
-            type ===
-              "UI/UX" ||
-            type ===
-              "UIUX" ||
-            category ===
-              "UI/UX" ||
-            category ===
-              "UIUX"
-          );
-
-        }
-
-
-        return (
-          category ===
-            activeFilter ||
-          type ===
-            activeFilter
-        );
-
+      if (
+        activeFilter === "ALL"
+      ) {
+        return category === "ALL";
       }
-    );
 
+      if (
+        activeFilter === "VIDEO"
+      ) {
+        return category === "VIDEO";
+      }
 
-  // ===================================================
-  // PAGINATION
-  // ===================================================
+      if (
+        activeFilter === "PHOTO"
+      ) {
+        return category === "PHOTO";
+      }
 
-  const totalPages =
-    Math.max(
-      1,
-      Math.ceil(
-        filteredProjects.length /
-          PROJECTS_PER_PAGE
-      )
-    );
+      if (
+        activeFilter === "BRANDING"
+      ) {
+        return category === "BRANDING";
+      }
 
+      if (
+        activeFilter === "DIGITAL"
+      ) {
+        return category === "DIGITAL";
+      }
 
-  const safeCurrentPage =
-    Math.min(
-      currentPage,
-      totalPages
-    );
+      if (
+        activeFilter === "UI/UX"
+      ) {
+        return category === "UI/UX";
+      }
 
+      return false;
+    });
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      filteredProjects.length /
+        PROJECTS_PER_PAGE
+    )
+  );
+
+  const safeCurrentPage = Math.min(
+    currentPage,
+    totalPages
+  );
 
   const startIndex =
     (safeCurrentPage - 1) *
     PROJECTS_PER_PAGE;
-
 
   const paginatedProjects =
     filteredProjects.slice(
@@ -696,396 +454,271 @@ function Portfolio() {
         PROJECTS_PER_PAGE
     );
 
-
-  // ===================================================
-  // CHANGE FILTER
-  // ===================================================
-
-  const handleFilterChange =
-    (filter) => {
-
-      setActiveFilter(
-        filter
-      );
-
-      setCurrentPage(1);
-
-    };
-
-
-  // ===================================================
-  // CHANGE PAGE
-  // ===================================================
-
-  const handlePageChange =
-    (page) => {
-
-      if (
-        page < 1 ||
-        page > totalPages
-      ) {
-
-        return;
-
-      }
-
-
-      setCurrentPage(
-        page
-      );
-
-
-      document
-        .getElementById(
-          "portfolio"
-        )
-        ?.scrollIntoView({
-          behavior:
-            "smooth",
-          block:
-            "start",
-        });
-
-    };
-
-
-  // ===================================================
-  // IMAGE ERROR FALLBACK
-  // ===================================================
-
-  const handleImageError =
-    (
-      event,
-      media,
-      project
-    ) => {
-
-      const element =
-        event.currentTarget;
-
-
-      const stage =
-        Number(
-          element.dataset
-            .fallbackStage ||
-          "0"
-        );
-
-
-      // -------------------------------------------------
-      // FALLBACK 1
-      // -------------------------------------------------
-
-      if (
-        stage === 0 &&
-        media?.thumbnail &&
-        element.src !==
-          media.thumbnail
-      ) {
-
-        element.dataset
-          .fallbackStage =
-          "1";
-
-        element.src =
-          media.thumbnail;
-
-        return;
-
-      }
-
-
-      // -------------------------------------------------
-      // FALLBACK 2
-      // -------------------------------------------------
-
-      if (
-        stage <= 1 &&
-        media?.image &&
-        element.src !==
-          media.image
-      ) {
-
-        element.dataset
-          .fallbackStage =
-          "2";
-
-        element.src =
-          media.image;
-
-        return;
-
-      }
-
-
-      // -------------------------------------------------
-      // FALLBACK 3
-      // -------------------------------------------------
-
-      if (
-        stage <= 2 &&
-        media?.id
-      ) {
-
-        element.dataset
-          .fallbackStage =
-          "3";
-
-        element.src =
-          `https://drive.google.com/thumbnail?id=${media.id}&sz=w2000`;
-
-        return;
-
-      }
-
-
-      // -------------------------------------------------
-      // FALLBACK 4
-      // -------------------------------------------------
-
-      if (
-        stage <= 3 &&
-        project?.id
-      ) {
-
-        element.dataset
-          .fallbackStage =
-          "4";
-
-        element.src =
-          `https://drive.google.com/thumbnail?id=${project.id}&sz=w2000`;
-
-        return;
-
-      }
-
-
-      element.style.display =
-        "none";
-
-    };
-
-
-  // ===================================================
-  // OPEN PROJECT
-  // ===================================================
-
-  const openProject =
-    (
-      project,
-      mediaIndex = 0
-    ) => {
-
-      setSelectedProject(
-        project
-      );
-
-      setCurrentMediaIndex(
-        mediaIndex
-      );
-
-      document.body.style.overflow =
-        "hidden";
-
-    };
-
-
-  // ===================================================
-  // CLOSE PROJECT
-  // ===================================================
-
-  const closeProject =
-    () => {
-
-      setSelectedProject(
-        null
-      );
-
-      setCurrentMediaIndex(
-        0
-      );
-
-      document.body.style.overflow =
-        "";
-
-    };
-
-
-  // ===================================================
-  // SELECTED PROJECT MEDIA
-  // ===================================================
+  const handleFilterChange = (
+    filter
+  ) => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
+
+    if (selectedProject) {
+      closeProject();
+    }
+  };
+
+  const handlePageChange = (
+    page
+  ) => {
+    if (
+      page < 1 ||
+      page > totalPages
+    ) {
+      return;
+    }
+
+    setCurrentPage(page);
+
+    document
+      .getElementById("portfolio")
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+  };
+
+  const handleImageError = (
+    event,
+    media,
+    project
+  ) => {
+    const element =
+      event.currentTarget;
+
+    const stage = Number(
+      element.dataset
+        .fallbackStage || "0"
+    );
+
+    if (
+      stage === 0 &&
+      media?.thumbnail &&
+      element.src !==
+        media.thumbnail
+    ) {
+      element.dataset
+        .fallbackStage = "1";
+
+      element.src =
+        media.thumbnail;
+
+      return;
+    }
+
+    if (
+      stage <= 1 &&
+      media?.image &&
+      element.src !==
+        media.image
+    ) {
+      element.dataset
+        .fallbackStage = "2";
+
+      element.src =
+        media.image;
+
+      return;
+    }
+
+    if (
+      stage <= 2 &&
+      media?.id
+    ) {
+      element.dataset
+        .fallbackStage = "3";
+
+      element.src =
+        `https://drive.google.com/thumbnail?id=${media.id}&sz=w2000`;
+
+      return;
+    }
+
+    if (
+      stage <= 3 &&
+      project?.id
+    ) {
+      element.dataset
+        .fallbackStage = "4";
+
+      element.src =
+        `https://drive.google.com/thumbnail?id=${project.id}&sz=w2000`;
+
+      return;
+    }
+
+    element.style.display =
+      "none";
+  };
+
+  const openProject = (
+    project,
+    mediaIndex = 0
+  ) => {
+    setSelectedProject(project);
+    setCurrentMediaIndex(
+      mediaIndex
+    );
+    document.body.style.overflow =
+      "hidden";
+  };
+
+  const closeProject = () => {
+    setSelectedProject(null);
+    setCurrentMediaIndex(0);
+    document.body.style.overflow =
+      "";
+  };
 
   const selectedMedia =
     getProjectMedia(
       selectedProject
     );
 
+  const nextMedia = () => {
+    if (
+      selectedMedia.length <= 1
+    ) {
+      return;
+    }
 
-  // ===================================================
-  // NEXT MEDIA
-  // ===================================================
+    setCurrentMediaIndex(
+      (previous) =>
+        (previous + 1) %
+        selectedMedia.length
+    );
+  };
 
-  const nextMedia =
-    () => {
+  const previousMedia = () => {
+    if (
+      selectedMedia.length <= 1
+    ) {
+      return;
+    }
 
-      if (
-        selectedMedia.length <=
-        1
-      ) {
-
-        return;
-
-      }
-
-
-      setCurrentMediaIndex(
-        (previous) =>
-          (
-            previous + 1
-          ) %
+    setCurrentMediaIndex(
+      (previous) =>
+        (
+          previous -
+          1 +
           selectedMedia.length
-      );
+        ) %
+        selectedMedia.length
+    );
+  };
 
-    };
-
-
-  // ===================================================
-  // PREVIOUS MEDIA
-  // ===================================================
-
-  const previousMedia =
-    () => {
-
-      if (
-        selectedMedia.length <=
-        1
-      ) {
-
-        return;
-
-      }
-
-
-      setCurrentMediaIndex(
-        (previous) =>
-          (
-            previous -
-            1 +
-            selectedMedia.length
-          ) %
-          selectedMedia.length
-      );
-
-    };
-
-
-  // ===================================================
-  // SELECT MEDIA
-  // ===================================================
-
-  const selectMedia =
-    (index) => {
-
-      setCurrentMediaIndex(
-        index
-      );
-
-    };
-
-
-  // ===================================================
-  // CLEANUP
-  // ===================================================
+  const selectMedia = (index) => {
+    setCurrentMediaIndex(index);
+  };
 
   useEffect(() => {
-
     return () => {
-
       document.body.style.overflow =
         "";
-
     };
-
   }, []);
 
-
-  // ===================================================
-  // KEYBOARD CONTROLS
-  // ===================================================
-
   useEffect(() => {
-
     const handleKeyDown =
       (event) => {
-
-        if (
-          !selectedProject
-        ) {
-
+        if (!selectedProject) {
           return;
-
         }
 
-
         if (
-          event.key ===
-          "Escape"
+          event.key === "Escape"
         ) {
-
           closeProject();
-
         }
 
-
         if (
-          event.key ===
-          "ArrowRight"
+          event.key === "ArrowRight"
         ) {
-
           nextMedia();
-
         }
-
 
         if (
-          event.key ===
-          "ArrowLeft"
+          event.key === "ArrowLeft"
         ) {
-
           previousMedia();
-
         }
-
       };
-
 
     window.addEventListener(
       "keydown",
       handleKeyDown
     );
 
-
     return () => {
-
       window.removeEventListener(
         "keydown",
         handleKeyDown
       );
-
     };
-
   }, [
     selectedProject,
     selectedMedia.length,
   ]);
 
+  const getSectionTitle = () => {
+    if (
+      activeFilter === "ALL"
+    ) {
+      return "ALL WORK";
+    }
 
-  // ===================================================
-  // RENDER
-  // ===================================================
+    return activeFilter;
+  };
+
+  const getSectionDescription =
+    () => {
+      if (
+        activeFilter === "ALL"
+      ) {
+        return "A collection of my visual, digital, motion, branding, and interactive work.";
+      }
+
+      if (
+        activeFilter === "VIDEO"
+      ) {
+        return "Selected motion, film, editing, and visual storytelling work.";
+      }
+
+      if (
+        activeFilter === "PHOTO"
+      ) {
+        return "Selected photography, imagery, and visual compositions.";
+      }
+
+      if (
+        activeFilter === "BRANDING"
+      ) {
+        return "Selected identity systems, visual identities, and brand work.";
+      }
+
+      if (
+        activeFilter === "DIGITAL"
+      ) {
+        return "Selected digital content, campaigns, and creative experiences.";
+      }
+
+      if (
+        activeFilter === "UI/UX"
+      ) {
+        return "Selected interface designs, digital products, and user experiences.";
+      }
+
+      return "";
+    };
 
   return (
-
     <section
       id="portfolio"
       className="
@@ -1095,7 +728,6 @@ function Portfolio() {
         text-white
       "
     >
-
       <div
         className="
           mx-auto
@@ -1108,18 +740,13 @@ function Portfolio() {
           lg:py-14
         "
       >
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
 
         <div className="mb-8">
-
           <Reveal
             direction="up"
             delay={0}
           >
-
             <div
               className="
                 mb-5
@@ -1128,7 +755,6 @@ function Portfolio() {
                 gap-3
               "
             >
-
               <span
                 className="
                   text-[10px]
@@ -1159,11 +785,8 @@ function Portfolio() {
               >
                 PORTFOLIO
               </span>
-
             </div>
-
           </Reveal>
-
 
           <div
             className="
@@ -1175,14 +798,11 @@ function Portfolio() {
               lg:justify-between
             "
           >
-
             <Reveal
               direction="up"
               delay={100}
             >
-
               <div>
-
                 <h2
                   className="
                     text-[42px]
@@ -1194,9 +814,8 @@ function Portfolio() {
                     xl:text-[74px]
                   "
                 >
-                  SELECTED WORK
+                  {getSectionTitle()}
                 </h2>
-
 
                 <p
                   className="
@@ -1209,23 +828,15 @@ function Portfolio() {
                     lg:text-[13px]
                   "
                 >
-                  A collection of visuals,
-                  digital experiences,
-                  stories, and ideas
-                  I&apos;ve created along
-                  the way.
+                  {getSectionDescription()}
                 </p>
-
               </div>
-
             </Reveal>
-
 
             <Reveal
               direction="up"
               delay={200}
             >
-
               <div
                 className="
                   flex
@@ -1235,10 +846,8 @@ function Portfolio() {
                   lg:justify-end
                 "
               >
-
                 {filters.map(
                   (filter) => (
-
                     <button
                       key={filter}
                       type="button"
@@ -1262,12 +871,10 @@ function Portfolio() {
                         }
                       `}
                     >
-
                       {filter}
 
                       {activeFilter ===
                         filter && (
-
                         <span
                           className="
                             absolute
@@ -1278,26 +885,18 @@ function Portfolio() {
                             bg-white
                           "
                         />
-
                       )}
-
                     </button>
-
                   )
                 )}
-
               </div>
-
             </Reveal>
-
           </div>
-
 
           <Reveal
             direction="none"
             delay={300}
           >
-
             <div
               className="
                 mt-6
@@ -1306,23 +905,16 @@ function Portfolio() {
                 bg-white/10
               "
             />
-
           </Reveal>
-
         </div>
 
-
-        {/* =================================================
-            LOADING
-        ================================================= */}
+        {/* LOADING */}
 
         {loading && (
-
           <Reveal
             direction="up"
             delay={0}
           >
-
             <div
               className="
                 flex
@@ -1331,7 +923,6 @@ function Portfolio() {
                 justify-center
               "
             >
-
               <p
                 className="
                   text-[10px]
@@ -1341,26 +932,18 @@ function Portfolio() {
               >
                 LOADING PROJECTS...
               </p>
-
             </div>
-
           </Reveal>
-
         )}
 
-
-        {/* =================================================
-            ERROR
-        ================================================= */}
+        {/* ERROR */}
 
         {!loading &&
           error && (
-
             <Reveal
               direction="up"
               delay={0}
             >
-
               <div
                 className="
                   flex
@@ -1369,9 +952,7 @@ function Portfolio() {
                   justify-center
                 "
               >
-
                 <div className="text-center">
-
                   <p
                     className="
                       text-[10px]
@@ -1382,7 +963,6 @@ function Portfolio() {
                     UNABLE TO LOAD
                     PORTFOLIO
                   </p>
-
 
                   <p
                     className="
@@ -1395,30 +975,21 @@ function Portfolio() {
                     PLEASE CHECK YOUR
                     API CONNECTION
                   </p>
-
                 </div>
-
               </div>
-
             </Reveal>
-
           )}
 
-
-        {/* =================================================
-            EMPTY
-        ================================================= */}
+        {/* EMPTY */}
 
         {!loading &&
           !error &&
           filteredProjects.length ===
             0 && (
-
             <Reveal
               direction="up"
               delay={0}
             >
-
               <div
                 className="
                   flex
@@ -1427,33 +998,43 @@ function Portfolio() {
                   justify-center
                 "
               >
+                <div className="text-center">
+                  <p
+                    className="
+                      text-[10px]
+                      tracking-[0.15em]
+                      text-white/40
+                    "
+                  >
+                    NO ALL WORK FOUND
+                  </p>
 
-                <p
-                  className="
-                    text-[10px]
-                    tracking-[0.15em]
-                    text-white/40
-                  "
-                >
-                  NO PROJECTS FOUND
-                </p>
-
+                  {activeFilter ===
+                    "ALL" && (
+                    <p
+                      className="
+                        mt-3
+                        text-[9px]
+                        tracking-[0.1em]
+                        text-white/25
+                      "
+                    >
+                      MARK PROJECTS AS
+                      FAVORITES IN YOUR
+                      PORTFOLIO DATA
+                    </p>
+                  )}
+                </div>
               </div>
-
             </Reveal>
-
           )}
 
-
-        {/* =================================================
-            PROJECT GRID
-        ================================================= */}
+        {/* PROJECT GRID */}
 
         {!loading &&
           !error &&
           paginatedProjects.length >
             0 && (
-
             <div
               className="
                 columns-1
@@ -1463,37 +1044,30 @@ function Portfolio() {
                 xl:columns-4
               "
             >
-
               {paginatedProjects.map(
                 (
                   project,
                   index
                 ) => {
-
                   const projectMedia =
                     getProjectMedia(
                       project
                     );
-
 
                   const projectIsVideo =
                     isVideoProject(
                       project
                     );
 
-
                   const projectIsCollection =
                     isCollection(
                       project
                     );
 
-
                   const mediaCount =
                     projectMedia.length;
 
-
                   return (
-
                     <Reveal
                       key={
                         project.id
@@ -1509,7 +1083,6 @@ function Portfolio() {
                         break-inside-avoid
                       "
                     >
-
                       <article
                         onClick={() =>
                           openProject(
@@ -1529,10 +1102,7 @@ function Portfolio() {
                           hover:border-white/30
                         "
                       >
-
-                        {/* =================================================
-                            PROJECT IMAGE
-                        ================================================= */}
+                        {/* PROJECT IMAGE */}
 
                         <div
                           className="
@@ -1542,13 +1112,10 @@ function Portfolio() {
                             bg-[#080808]
                           "
                         >
-
                           <img
-                            src={
-                              getCardImage(
-                                project
-                              )
-                            }
+                            src={getCardImage(
+                              project
+                            )}
                             alt={
                               project.title
                             }
@@ -1577,7 +1144,6 @@ function Portfolio() {
                             "
                           />
 
-
                           <div
                             className="
                               pointer-events-none
@@ -1590,13 +1156,9 @@ function Portfolio() {
                             "
                           />
 
-
-                          {/* =================================================
-                              COLLECTION LABEL
-                          ================================================= */}
+                          {/* COLLECTION LABEL */}
 
                           {projectIsCollection && (
-
                             <div
                               className="
                                 absolute
@@ -1611,7 +1173,6 @@ function Portfolio() {
                                 backdrop-blur-sm
                               "
                             >
-
                               <span
                                 className="
                                   text-[8px]
@@ -1621,93 +1182,181 @@ function Portfolio() {
                               >
                                 COLLECTION
                               </span>
-
                             </div>
-
                           )}
 
-
-                          {/* =================================================
-                              MEDIA COUNT
-                          ================================================= */}
+                          {/* MEDIA COUNT */}
 
                           {projectIsCollection &&
                             mediaCount >
                               1 && (
-
-                            <div
-                              className="
-                                absolute
-                                bottom-3
-                                right-3
-                                z-10
-                                border
-                                border-white/20
-                                bg-black/70
-                                px-2
-                                py-1
-                                backdrop-blur-sm
-                              "
-                            >
-
-                              <span
-                                className="
-                                  text-[8px]
-                                  tracking-[0.12em]
-                                  text-white/80
-                                "
-                              >
-                                {mediaCount}{" "}
-                                MEDIA
-                              </span>
-
-                            </div>
-
-                          )}
-
-
-                          {/* =================================================
-                              VIDEO LABEL
-                          ================================================= */}
-
-                          {projectIsVideo && (
-
-                            <>
-
                               <div
                                 className="
                                   absolute
-                                  left-3
-                                  top-3
+                                  bottom-3
+                                  right-3
                                   z-10
-                                  flex
-                                  items-center
-                                  gap-2
+                                  border
+                                  border-white/20
+                                  bg-black/70
+                                  px-2
+                                  py-1
+                                  backdrop-blur-sm
                                 "
                               >
-
-                                <span
-                                  className="
-                                    h-1.5
-                                    w-1.5
-                                    rounded-full
-                                    bg-white
-                                  "
-                                />
-
                                 <span
                                   className="
                                     text-[8px]
-                                    tracking-[0.14em]
+                                    tracking-[0.12em]
                                     text-white/80
                                   "
                                 >
-                                  VIDEO
+                                  {mediaCount}{" "}
+                                  MEDIA
                                 </span>
-
                               </div>
+                            )}
 
+                          {/* INDIVIDUAL VIDEO */}
 
+                          {projectIsVideo &&
+                            !projectIsCollection && (
+                              <>
+                                <div
+                                  className="
+                                    absolute
+                                    left-3
+                                    top-3
+                                    z-10
+                                    flex
+                                    items-center
+                                    gap-2
+                                  "
+                                >
+                                  <span
+                                    className="
+                                      h-1.5
+                                      w-1.5
+                                      rounded-full
+                                      bg-white
+                                    "
+                                  />
+
+                                  <span
+                                    className="
+                                      text-[8px]
+                                      tracking-[0.14em]
+                                      text-white/80
+                                    "
+                                  >
+                                    VIDEO
+                                  </span>
+                                </div>
+
+                                <div
+                                  className="
+                                    absolute
+                                    left-1/2
+                                    top-1/2
+                                    z-10
+                                    flex
+                                    h-11
+                                    w-11
+                                    -translate-x-1/2
+                                    -translate-y-1/2
+                                    items-center
+                                    justify-center
+                                    rounded-full
+                                    border
+                                    border-white/30
+                                    bg-black/60
+                                    text-[11px]
+                                    text-white
+                                    backdrop-blur-sm
+                                    transition-all
+                                    duration-300
+                                    group-hover:scale-110
+                                    group-hover:bg-white
+                                    group-hover:text-black
+                                  "
+                                >
+                                  ▶
+                                </div>
+                              </>
+                            )}
+
+                          {/* VIDEO COLLECTION */}
+
+                          {projectIsCollection &&
+                            projectIsVideo && (
+                              <>
+                                <div
+                                  className="
+                                    absolute
+                                    left-3
+                                    top-3
+                                    z-10
+                                    flex
+                                    items-center
+                                    gap-2
+                                  "
+                                >
+                                  <span
+                                    className="
+                                      h-1.5
+                                      w-1.5
+                                      rounded-full
+                                      bg-white
+                                    "
+                                  />
+
+                                  <span
+                                    className="
+                                      text-[8px]
+                                      tracking-[0.14em]
+                                      text-white/80
+                                    "
+                                  >
+                                    VIDEO
+                                  </span>
+                                </div>
+
+                                <div
+                                  className="
+                                    absolute
+                                    left-1/2
+                                    top-1/2
+                                    z-10
+                                    flex
+                                    h-11
+                                    w-11
+                                    -translate-x-1/2
+                                    -translate-y-1/2
+                                    items-center
+                                    justify-center
+                                    rounded-full
+                                    border
+                                    border-white/30
+                                    bg-black/60
+                                    text-[11px]
+                                    text-white
+                                    backdrop-blur-sm
+                                    transition-all
+                                    duration-300
+                                    group-hover:scale-110
+                                    group-hover:bg-white
+                                    group-hover:text-black
+                                  "
+                                >
+                                  ▶
+                                </div>
+                              </>
+                            )}
+
+                          {/* IMAGE COLLECTION */}
+
+                          {projectIsCollection &&
+                            !projectIsVideo && (
                               <div
                                 className="
                                   absolute
@@ -1725,7 +1374,8 @@ function Portfolio() {
                                   border
                                   border-white/30
                                   bg-black/60
-                                  text-[11px]
+                                  text-[20px]
+                                  font-light
                                   text-white
                                   backdrop-blur-sm
                                   transition-all
@@ -1735,58 +1385,12 @@ function Portfolio() {
                                   group-hover:text-black
                                 "
                               >
-                                ▶
+                                +
                               </div>
-
-                            </>
-
-                          )}
-
-
-                          {/* =================================================
-                              COLLECTION OPEN ICON
-                          ================================================= */}
-
-                          {projectIsCollection && (
-
-                            <div
-                              className="
-                                absolute
-                                left-1/2
-                                top-1/2
-                                z-10
-                                flex
-                                h-11
-                                w-11
-                                -translate-x-1/2
-                                -translate-y-1/2
-                                items-center
-                                justify-center
-                                rounded-full
-                                border
-                                border-white/30
-                                bg-black/60
-                                text-[12px]
-                                text-white
-                                backdrop-blur-sm
-                                transition-all
-                                duration-300
-                                group-hover:scale-110
-                                group-hover:bg-white
-                                group-hover:text-black
-                              "
-                            >
-                              ↗
-                            </div>
-
-                          )}
-
+                            )}
                         </div>
 
-
-                        {/* =================================================
-                            PROJECT INFO
-                        ================================================= */}
+                        {/* PROJECT INFO */}
 
                         <div
                           className="
@@ -1801,13 +1405,11 @@ function Portfolio() {
                             py-3
                           "
                         >
-
                           <div
                             className="
                               min-w-0
                             "
                           >
-
                             <h3
                               className="
                                 truncate
@@ -1823,42 +1425,24 @@ function Portfolio() {
                               }
                             </h3>
 
-
-                            <p
-                              className="
-                                mt-1
-                                truncate
-                                text-[8px]
-                                tracking-[0.04em]
-                                text-white/40
-                                sm:text-[9px]
-                              "
-                            >
-                              {
-                                project.category
-                              }
-
-                              {" — "}
-
-                              {
-                                project.year ||
-                                ""
-                              }
-
-                              {projectIsCollection && (
-                                <>
-                                  {" — "}
-                                  {
-                                    mediaCount
-                                  }
-                                  {" MEDIA"}
-                                </>
+                            {projectIsCollection &&
+                              mediaCount >
+                                1 && (
+                                <p
+                                  className="
+                                    mt-1
+                                    truncate
+                                    text-[8px]
+                                    tracking-[0.04em]
+                                    text-white/40
+                                    sm:text-[9px]
+                                  "
+                                >
+                                  {mediaCount}{" "}
+                                  MEDIA
+                                </p>
                               )}
-
-                            </p>
-
                           </div>
-
 
                           <span
                             className="
@@ -1874,37 +1458,25 @@ function Portfolio() {
                           >
                             ↗
                           </span>
-
                         </div>
-
                       </article>
-
                     </Reveal>
-
                   );
-
                 }
               )}
-
             </div>
-
           )}
 
-
-        {/* =================================================
-            PROJECT COUNT
-        ================================================= */}
+        {/* PROJECT COUNT */}
 
         {!loading &&
           !error &&
           filteredProjects.length >
             0 && (
-
             <Reveal
               direction="up"
               delay={100}
             >
-
               <div
                 className="
                   mt-6
@@ -1916,66 +1488,44 @@ function Portfolio() {
                   sm:text-[10px]
                 "
               >
-
                 <span>
-
                   SHOWING{" "}
-
                   {startIndex + 1}
-
                   –
-
                   {Math.min(
                     startIndex +
                       PROJECTS_PER_PAGE,
                     filteredProjects.length
                   )}
-
                   {" OF "}
-
                   {
                     filteredProjects.length
                   }
-
                 </span>
 
-
                 <span>
-
                   PAGE{" "}
-
                   {
                     safeCurrentPage
                   }
-
                   {" OF "}
-
                   {
                     totalPages
                   }
-
                 </span>
-
               </div>
-
             </Reveal>
-
           )}
 
-
-        {/* =================================================
-            PAGINATION
-        ================================================= */}
+        {/* PAGINATION */}
 
         {!loading &&
           !error &&
           totalPages > 1 && (
-
             <Reveal
               direction="up"
               delay={150}
             >
-
               <div
                 className="
                   mt-8
@@ -1989,7 +1539,6 @@ function Portfolio() {
                   pt-8
                 "
               >
-
                 <button
                   type="button"
                   disabled={
@@ -2017,14 +1566,12 @@ function Portfolio() {
                   ← PREVIOUS
                 </button>
 
-
                 <div
                   className="
                     flex
                     gap-2
                   "
                 >
-
                   {Array.from(
                     {
                       length:
@@ -2034,7 +1581,6 @@ function Portfolio() {
                       index + 1
                   ).map(
                     (page) => (
-
                       <button
                         key={page}
                         type="button"
@@ -2063,12 +1609,9 @@ function Portfolio() {
                       >
                         {page}
                       </button>
-
                     )
                   )}
-
                 </div>
-
 
                 <button
                   type="button"
@@ -2096,22 +1639,14 @@ function Portfolio() {
                 >
                   NEXT →
                 </button>
-
               </div>
-
             </Reveal>
-
           )}
-
       </div>
 
-
-      {/* =====================================================
-          PROJECT MODAL
-      ===================================================== */}
+      {/* PROJECT MODAL */}
 
       {selectedProject && (
-
         <div
           className="
             fixed
@@ -2127,9 +1662,6 @@ function Portfolio() {
             animate-[modalFade_300ms_ease-out_both]
           "
         >
-
-          {/* BACKDROP */}
-
           <div
             className="
               absolute
@@ -2139,9 +1671,6 @@ function Portfolio() {
               closeProject
             }
           />
-
-
-          {/* MODAL */}
 
           <div
             className="
@@ -2160,10 +1689,7 @@ function Portfolio() {
               animate-[modalUp_500ms_cubic-bezier(0.22,1,0.36,1)_both]
             "
           >
-
-            {/* =================================================
-                CLOSE
-            ================================================= */}
+            {/* CLOSE */}
 
             <button
               type="button"
@@ -2197,10 +1723,7 @@ function Portfolio() {
               ✕
             </button>
 
-
-            {/* =================================================
-                COLLECTION / MEDIA VIEWER
-            ================================================= */}
+            {/* MEDIA VIEWER */}
 
             <div
               className="
@@ -2214,157 +1737,122 @@ function Portfolio() {
                 bg-[#050505]
               "
             >
-
-              {/* =================================================
-                  CURRENT MEDIA
-              ================================================= */}
-
               {selectedMedia.length >
                 0 &&
                 selectedMedia[
                   currentMediaIndex
                 ] && (
-
-                <div
-                  key={
-                    selectedMedia[
+                  <div
+                    key={
+                      selectedMedia[
+                        currentMediaIndex
+                      ].id ||
                       currentMediaIndex
-                    ].id ||
-                    currentMediaIndex
-                  }
-                  className="
-                    flex
-                    h-full
-                    w-full
-                    items-center
-                    justify-center
-                    animate-[imageReveal_400ms_ease-out_both]
-                  "
-                >
-
-                  {isVideoMedia(
-                    selectedMedia[
-                      currentMediaIndex
-                    ]
-                  ) ? (
-
-                    /* =================================================
-                       VIDEO
-                    ================================================= */
-
-                    getVideoPreview(
+                    }
+                    className="
+                      flex
+                      h-full
+                      w-full
+                      items-center
+                      justify-center
+                      animate-[imageReveal_400ms_ease-out_both]
+                    "
+                  >
+                    {isVideoMedia(
                       selectedMedia[
                         currentMediaIndex
                       ]
                     ) ? (
-
-                      <iframe
-                        src={
-                          getVideoPreview(
+                      getVideoPreview(
+                        selectedMedia[
+                          currentMediaIndex
+                        ]
+                      ) ? (
+                        <iframe
+                          src={getVideoPreview(
                             selectedMedia[
                               currentMediaIndex
                             ]
-                          )
-                        }
-                        title={
+                          )}
+                          title={
+                            selectedMedia[
+                              currentMediaIndex
+                            ].title ||
+                            selectedProject.title
+                          }
+                          className="
+                            h-[70vh]
+                            w-full
+                            border-0
+                            sm:h-[72vh]
+                          "
+                          allow="
+                            autoplay;
+                            fullscreen;
+                            picture-in-picture
+                          "
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div
+                          className="
+                            flex
+                            h-[50vh]
+                            items-center
+                            justify-center
+                          "
+                        >
+                          <p
+                            className="
+                              text-[10px]
+                              tracking-[0.15em]
+                              text-white/40
+                            "
+                          >
+                            VIDEO PREVIEW
+                            UNAVAILABLE
+                          </p>
+                        </div>
+                      )
+                    ) : (
+                      <img
+                        src={getMediaPreview(
+                          selectedMedia[
+                            currentMediaIndex
+                          ]
+                        )}
+                        alt={
                           selectedMedia[
                             currentMediaIndex
                           ].title ||
                           selectedProject.title
                         }
+                        onError={(
+                          event
+                        ) =>
+                          handleImageError(
+                            event,
+                            selectedMedia[
+                              currentMediaIndex
+                            ],
+                            selectedProject
+                          )
+                        }
                         className="
-                          h-[70vh]
-                          w-full
-                          border-0
-                          sm:h-[72vh]
+                          max-h-[70vh]
+                          max-w-[94%]
+                          object-contain
+                          sm:max-h-[72vh]
                         "
-                        allow="
-                          autoplay;
-                          fullscreen;
-                          picture-in-picture
-                        "
-                        allowFullScreen
                       />
+                    )}
+                  </div>
+                )}
 
-                    ) : (
-
-                      <div
-                        className="
-                          flex
-                          h-[50vh]
-                          items-center
-                          justify-center
-                        "
-                      >
-
-                        <p
-                          className="
-                            text-[10px]
-                            tracking-[0.15em]
-                            text-white/40
-                          "
-                        >
-                          VIDEO PREVIEW
-                          UNAVAILABLE
-                        </p>
-
-                      </div>
-
-                    )
-
-                  ) : (
-
-                    /* =================================================
-                       IMAGE
-                    ================================================= */
-
-                    <img
-                      src={
-                        getMediaPreview(
-                          selectedMedia[
-                            currentMediaIndex
-                          ]
-                        )
-                      }
-                      alt={
-                        selectedMedia[
-                          currentMediaIndex
-                        ].title ||
-                        selectedProject.title
-                      }
-                      onError={(
-                        event
-                      ) =>
-                        handleImageError(
-                          event,
-                          selectedMedia[
-                            currentMediaIndex
-                          ],
-                          selectedProject
-                        )
-                      }
-                      className="
-                        max-h-[70vh]
-                        max-w-[94%]
-                        object-contain
-                        sm:max-h-[72vh]
-                      "
-                    />
-
-                  )}
-
-                </div>
-
-              )}
-
-
-              {/* =================================================
-                  PREVIOUS
-              ================================================= */}
+              {/* PREVIOUS */}
 
               {selectedMedia.length >
                 1 && (
-
                 <button
                   type="button"
                   onClick={
@@ -2399,17 +1887,12 @@ function Portfolio() {
                 >
                   ←
                 </button>
-
               )}
 
-
-              {/* =================================================
-                  NEXT
-              ================================================= */}
+              {/* NEXT */}
 
               {selectedMedia.length >
                 1 && (
-
                 <button
                   type="button"
                   onClick={
@@ -2444,17 +1927,12 @@ function Portfolio() {
                 >
                   →
                 </button>
-
               )}
 
-
-              {/* =================================================
-                  COUNTER
-              ================================================= */}
+              {/* COUNTER */}
 
               {selectedMedia.length >
                 0 && (
-
                 <div
                   className="
                     absolute
@@ -2470,7 +1948,6 @@ function Portfolio() {
                     backdrop-blur-sm
                   "
                 >
-
                   <span
                     className="
                       text-[9px]
@@ -2478,44 +1955,31 @@ function Portfolio() {
                       text-white/70
                     "
                   >
-
-                    {
-                      String(
-                        currentMediaIndex +
-                          1
-                      ).padStart(
-                        2,
-                        "0"
-                      )
-                    }
+                    {String(
+                      currentMediaIndex +
+                        1
+                    ).padStart(
+                      2,
+                      "0"
+                    )}
 
                     {" / "}
 
-                    {
-                      String(
-                        selectedMedia.length
-                      ).padStart(
-                        2,
-                        "0"
-                      )
-                    }
-
+                    {String(
+                      selectedMedia.length
+                    ).padStart(
+                      2,
+                      "0"
+                    )}
                   </span>
-
                 </div>
-
               )}
-
             </div>
 
-
-            {/* =================================================
-                THUMBNAIL STRIP
-            ================================================= */}
+            {/* THUMBNAIL STRIP */}
 
             {selectedMedia.length >
               1 && (
-
               <div
                 className="
                   border-t
@@ -2525,7 +1989,6 @@ function Portfolio() {
                   py-3
                 "
               >
-
                 <div
                   className="
                     flex
@@ -2534,13 +1997,11 @@ function Portfolio() {
                     pb-1
                   "
                 >
-
                   {selectedMedia.map(
                     (
                       media,
                       index
                     ) => (
-
                       <button
                         key={
                           media.id ||
@@ -2572,7 +2033,6 @@ function Portfolio() {
                           }
                         `}
                       >
-
                         <img
                           src={
                             media.thumbnail ||
@@ -2596,13 +2056,9 @@ function Portfolio() {
                           "
                         />
 
-
-                        {/* VIDEO INDICATOR */}
-
                         {isVideoMedia(
                           media
                         ) && (
-
                           <span
                             className="
                               absolute
@@ -2617,15 +2073,10 @@ function Portfolio() {
                           >
                             ▶
                           </span>
-
                         )}
-
-
-                        {/* ACTIVE BORDER */}
 
                         {currentMediaIndex ===
                           index && (
-
                           <span
                             className="
                               pointer-events-none
@@ -2635,24 +2086,15 @@ function Portfolio() {
                               border-white
                             "
                           />
-
                         )}
-
                       </button>
-
                     )
                   )}
-
                 </div>
-
               </div>
-
             )}
 
-
-            {/* =================================================
-                PROJECT INFORMATION
-            ================================================= */}
+            {/* PROJECT INFORMATION */}
 
             <div
               className="
@@ -2663,7 +2105,6 @@ function Portfolio() {
                 sm:px-6
               "
             >
-
               <div
                 className="
                   flex
@@ -2674,13 +2115,11 @@ function Portfolio() {
                   sm:justify-between
                 "
               >
-
                 <div
                   className="
                     min-w-0
                   "
                 >
-
                   <p
                     className="
                       text-[9px]
@@ -2688,15 +2127,14 @@ function Portfolio() {
                       text-white/35
                     "
                   >
-                    {
-                      isCollection(
-                        selectedProject
-                      )
-                        ? "PROJECT COLLECTION"
-                        : selectedProject.type
-                    }
+                    {isCollection(
+                      selectedProject
+                    )
+                      ? "PROJECT COLLECTION"
+                      : getProjectCategory(
+                          selectedProject
+                        )}
                   </p>
-
 
                   <h3
                     className="
@@ -2713,7 +2151,6 @@ function Portfolio() {
                     }
                   </h3>
 
-
                   <p
                     className="
                       mt-2
@@ -2721,10 +2158,9 @@ function Portfolio() {
                       text-white/40
                     "
                   >
-
-                    {
-                      selectedProject.category
-                    }
+                    {getProjectCategory(
+                      selectedProject
+                    )}
 
                     {selectedProject.year && (
                       <>
@@ -2745,18 +2181,12 @@ function Portfolio() {
                         {" MEDIA"}
                       </>
                     )}
-
                   </p>
-
                 </div>
 
-
-                {/* =================================================
-                    OPEN DRIVE
-                ================================================= */}
+                {/* OPEN DRIVE */}
 
                 {selectedProject.driveUrl && (
-
                   <a
                     href={
                       selectedProject.driveUrl
@@ -2776,28 +2206,17 @@ function Portfolio() {
                   >
                     OPEN IN DRIVE ↗
                   </a>
-
                 )}
-
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       )}
 
-
-      {/* =====================================================
-          ANIMATIONS
-      ===================================================== */}
+      {/* ANIMATIONS */}
 
       <style>{`
-
         @keyframes modalFade {
-
           0% {
             opacity: 0;
           }
@@ -2805,12 +2224,9 @@ function Portfolio() {
           100% {
             opacity: 1;
           }
-
         }
 
-
         @keyframes modalUp {
-
           0% {
             opacity: 0;
             transform:
@@ -2824,12 +2240,9 @@ function Portfolio() {
               translateY(0)
               scale(1);
           }
-
         }
 
-
         @keyframes imageReveal {
-
           0% {
             opacity: 0;
             transform:
@@ -2841,18 +2254,14 @@ function Portfolio() {
             transform:
               scale(1);
           }
-
         }
-
 
         @media (
           prefers-reduced-motion: reduce
         ) {
-
           *,
           *::before,
           *::after {
-
             animation-duration:
               0.01ms !important;
 
@@ -2864,18 +2273,11 @@ function Portfolio() {
 
             scroll-behavior:
               auto !important;
-
           }
-
         }
-
       `}</style>
-
     </section>
-
   );
-
 }
-
 
 export default Portfolio;
