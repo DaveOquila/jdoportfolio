@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/portfolio-api",
+      "destination": "https://script.google.com/macros/s/AKfycbyipFgAjiMuZr2Oy3RjTBpcjDe7dz9NhlSRo0kS1CW_rbD0AI1v4cKz8v6g5Q2b4tcsgg/exec"
+    }
+  ]
+}
